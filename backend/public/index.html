@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Club — Database Explorer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-card: #1a2035;
+            --bg-input: #0f1629;
+            --border: #2a3352;
+            --border-focus: #6366f1;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent: #6366f1;
+            --accent-hover: #818cf8;
+            --accent-glow: rgba(99, 102, 241, 0.15);
+            --success: #34d399;
+            --error: #f87171;
+            --warning: #fbbf24;
+            --table-row-hover: rgba(99, 102, 241, 0.06);
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* ─── Header ─── */
+        .header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 32px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .header-icon {
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, var(--accent), #a855f7);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+        }
+        .header h1 {
+            font-size: 20px; font-weight: 600;
+            background: linear-gradient(135deg, #e2e8f0, #94a3b8);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .header p { font-size: 13px; color: var(--text-muted); }
+
+        /* ─── Layout ─── */
+        .layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: calc(100vh - 84px);
+        }
+
+        /* ─── Sidebar ─── */
+        .sidebar {
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            padding: 20px 0;
+            overflow-y: auto;
+        }
+        .sidebar-title {
+            font-size: 11px; font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            padding: 0 20px;
+            margin-bottom: 12px;
+        }
+        .table-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: all 0.15s;
+            border-left: 3px solid transparent;
+        }
+        .table-item:hover {
+            background: var(--accent-glow);
+            border-left-color: var(--accent);
+        }
+        .table-item.active {
+            background: var(--accent-glow);
+            border-left-color: var(--accent);
+        }
+        .table-item-name {
+            font-size: 14px; font-weight: 500;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
+        }
+        .table-item-count {
+            font-size: 12px;
+            background: var(--bg-card);
+            color: var(--text-muted);
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        /* ─── Main ─── */
+        .main {
+            padding: 24px 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow: hidden;
+        }
+
+        /* ─── Query Panel ─── */
+        .query-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+        .query-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        .query-header-title {
+            font-size: 14px; font-weight: 600;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .query-header-title .dot {
+            width: 8px; height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .query-editor {
+            position: relative;
+        }
+        .query-editor textarea {
+            width: 100%;
+            min-height: 120px;
+            max-height: 300px;
+            padding: 16px 20px;
+            background: var(--bg-input);
+            border: none;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            line-height: 1.7;
+            resize: vertical;
+            outline: none;
+        }
+        .query-editor textarea::placeholder {
+            color: var(--text-muted);
+        }
+        .query-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            border-top: 1px solid var(--border);
+            background: rgba(0,0,0,0.15);
+        }
+        .query-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .query-hint kbd {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1px 6px;
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+        }
+        .btn-run {
+            display: flex; align-items: center; gap: 8px;
+            background: linear-gradient(135deg, var(--accent), #7c3aed);
+            color: white;
+            border: none;
+            padding: 9px 20px;
+            border-radius: var(--radius-sm);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-run:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.35);
+        }
+        .btn-run:active { transform: translateY(0); }
+        .btn-run:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* ─── Quick actions ─── */
+        .quick-actions {
+            display: flex; gap: 8px; flex-wrap: wrap;
+        }
+        .quick-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .quick-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent-hover);
+            background: var(--accent-glow);
+        }
+
+        /* ─── Results ─── */
+        .results-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 200px;
+        }
+        .results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .results-title {
+            font-size: 14px; font-weight: 600;
+        }
+        .results-meta {
+            display: flex; gap: 16px;
+        }
+        .results-meta span {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .results-meta .value {
+            color: var(--accent-hover);
+            font-weight: 600;
+        }
+        .results-container {
+            overflow: auto;
+            flex: 1;
+        }
+
+        /* ─── Table ─── */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .data-table th {
+            position: sticky;
+            top: 0;
+            background: var(--bg-secondary);
+            text-align: left;
+            padding: 10px 16px;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+            z-index: 1;
+        }
+        .data-table td {
+            padding: 9px 16px;
+            border-bottom: 1px solid rgba(42, 51, 82, 0.5);
+            color: var(--text-secondary);
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12.5px;
+        }
+        .data-table tr:hover td {
+            background: var(--table-row-hover);
+            color: var(--text-primary);
+        }
+        .data-table td.pk { color: var(--warning); font-weight: 600; }
+        .data-table td.null { color: var(--text-muted); font-style: italic; }
+
+        /* ─── Status badges ─── */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-available { background: rgba(52, 211, 153, 0.15); color: var(--success); }
+        .badge-lent { background: rgba(251, 191, 36, 0.15); color: var(--warning); }
+        .badge-pending { background: rgba(99, 102, 241, 0.15); color: var(--accent-hover); }
+        .badge-approved { background: rgba(52, 211, 153, 0.15); color: var(--success); }
+        .badge-rejected { background: rgba(248, 113, 113, 0.15); color: var(--error); }
+        .badge-returned { background: rgba(148, 163, 184, 0.15); color: var(--text-secondary); }
+        .badge-admin { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
+        .badge-member { background: rgba(99, 102, 241, 0.15); color: var(--accent-hover); }
+
+        /* ─── Empty / Error ─── */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+            gap: 12px;
+            flex: 1;
+        }
+        .empty-state .icon { font-size: 40px; opacity: 0.5; }
+        .empty-state p { font-size: 14px; }
+
+        .error-msg {
+            margin: 20px;
+            padding: 14px 18px;
+            background: rgba(248, 113, 113, 0.08);
+            border: 1px solid rgba(248, 113, 113, 0.2);
+            border-radius: var(--radius-sm);
+            color: var(--error);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+        }
+
+        /* ─── Schema tooltip ─── */
+        .schema-panel {
+            padding: 0 20px 20px;
+        }
+        .schema-title {
+            font-size: 11px; font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            padding: 20px 0 10px;
+        }
+        .schema-col {
+            display: flex; align-items: center; gap: 8px;
+            padding: 5px 0;
+            font-size: 13px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .schema-col .col-name { color: var(--text-primary); }
+        .schema-col .col-type { color: var(--text-muted); font-size: 11px; }
+        .schema-col .col-pk {
+            font-size: 9px;
+            background: rgba(251, 191, 36, 0.15);
+            color: var(--warning);
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-weight: 700;
+        }
+        .schema-col .col-nn {
+            font-size: 9px;
+            background: rgba(248, 113, 113, 0.1);
+            color: var(--error);
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+
+        /* ─── Loading spinner ─── */
+        .spinner {
+            width: 16px; height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ─── Scrollbar ─── */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        /* ─── Responsive ─── */
+        @media (max-width: 768px) {
+            .layout { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+            .main { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-icon">📚</div>
+        <div>
+            <h1>Database Explorer</h1>
+            <p>Book Club App — SQLite Query Interface</p>
+        </div>
+    </div>
+
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-title">Tables</div>
+            <div id="table-list"></div>
+            <div class="schema-panel" id="schema-panel" style="display:none">
+                <div class="schema-title">Schema</div>
+                <div id="schema-columns"></div>
+            </div>
+        </aside>
+
+        <!-- Main -->
+        <main class="main">
+            <!-- Query Panel -->
+            <div class="query-panel">
+                <div class="query-header">
+                    <div class="query-header-title">
+                        <span class="dot"></span>
+                        SQL Query
+                    </div>
+                    <div class="quick-actions" id="quick-actions"></div>
+                </div>
+                <div class="query-editor">
+                    <textarea id="sql-input" placeholder="SELECT * FROM members LIMIT 10;" spellcheck="false"></textarea>
+                </div>
+                <div class="query-footer">
+                    <span class="query-hint">Press <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to run · Read-only queries only</span>
+                    <button class="btn-run" id="btn-run" onclick="executeQuery()">
+                        <span>▶</span> Run Query
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="results-panel" id="results-panel">
+                <div class="results-header">
+                    <span class="results-title" id="results-title">Results</span>
+                    <div class="results-meta" id="results-meta"></div>
+                </div>
+                <div class="results-container" id="results-container">
+                    <div class="empty-state">
+                        <div class="icon">⚡</div>
+                        <p>Run a query or click a table to see data</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const sqlInput = document.getElementById('sql-input');
+        const btnRun = document.getElementById('btn-run');
+        const resultsContainer = document.getElementById('results-container');
+        const resultsTitle = document.getElementById('results-title');
+        const resultsMeta = document.getElementById('results-meta');
+
+        let tables = [];
+        let activeTable = null;
+
+        // ─── Keyboard shortcut ───
+        sqlInput.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                executeQuery();
+            }
+            // Tab inserts spaces
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = sqlInput.selectionStart;
+                sqlInput.value = sqlInput.value.substring(0, start) + '  ' + sqlInput.value.substring(sqlInput.selectionEnd);
+                sqlInput.selectionStart = sqlInput.selectionEnd = start + 2;
+            }
+        });
+
+        // ─── Load tables ───
+        async function loadTables() {
+            try {
+                const res = await fetch('/api/db/tables');
+                tables = await res.json();
+                renderTableList();
+                renderQuickActions();
+            } catch (err) {
+                console.error('Failed to load tables:', err);
+            }
+        }
+
+        function renderTableList() {
+            const list = document.getElementById('table-list');
+            list.innerHTML = tables.map(t => `
+                <div class="table-item ${activeTable === t.name ? 'active' : ''}"
+                     onclick="browseTable('${t.name}')" title="Browse ${t.name}">
+                    <span class="table-item-name">${t.name}</span>
+                    <span class="table-item-count">${t.row_count}</span>
+                </div>
+            `).join('');
+        }
+
+        function renderQuickActions() {
+            const container = document.getElementById('quick-actions');
+            const queries = [
+                { label: 'All Members', sql: 'SELECT * FROM members ORDER BY name' },
+                { label: 'Available Books', sql: "SELECT b.title, b.author, m.name AS owner FROM books b JOIN members m ON m.id = b.owner_id WHERE b.status = 'available' ORDER BY b.title" },
+                { label: 'Pending Requests', sql: "SELECT lr.id, b.title, m.name AS borrower, lr.requested_at FROM lend_requests lr JOIN books b ON b.id = lr.book_id JOIN members m ON m.id = lr.borrower_id WHERE lr.status = 'pending'" },
+                { label: 'Groups', sql: "SELECT g.name, g.description, m.name AS created_by, (SELECT COUNT(*) FROM group_members gm WHERE gm.group_id = g.id) AS members FROM club_groups g JOIN members m ON m.id = g.created_by" },
+            ];
+            container.innerHTML = queries.map(q =>
+                `<button class="quick-btn" onclick="runQuickQuery(\`${q.sql}\`)">${q.label}</button>`
+            ).join('');
+        }
+
+        function runQuickQuery(sql) {
+            sqlInput.value = sql;
+            executeQuery();
+        }
+
+        // ─── Browse table ───
+        async function browseTable(name) {
+            activeTable = name;
+            renderTableList();
+            showSchema(name);
+            sqlInput.value = `SELECT * FROM ${name}`;
+            executeQuery();
+        }
+
+        function showSchema(name) {
+            const table = tables.find(t => t.name === name);
+            if (!table) return;
+
+            const panel = document.getElementById('schema-panel');
+            const cols = document.getElementById('schema-columns');
+            panel.style.display = 'block';
+
+            cols.innerHTML = table.columns.map(c => `
+                <div class="schema-col">
+                    <span class="col-name">${c.name}</span>
+                    <span class="col-type">${c.type || 'any'}</span>
+                    ${c.pk ? '<span class="col-pk">PK</span>' : ''}
+                    ${c.notnull ? '<span class="col-nn">NOT NULL</span>' : ''}
+                </div>
+            `).join('');
+        }
+
+        // ─── Execute query ───
+        async function executeQuery() {
+            const sql = sqlInput.value.trim();
+            if (!sql) return;
+
+            btnRun.disabled = true;
+            btnRun.innerHTML = '<div class="spinner"></div> Running...';
+            resultsContainer.innerHTML = '<div class="empty-state"><div class="spinner" style="width:24px;height:24px;border-width:3px"></div><p>Executing query...</p></div>';
+
+            try {
+                const res = await fetch('/api/db/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sql }),
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    resultsTitle.textContent = 'Error';
+                    resultsMeta.innerHTML = '';
+                    resultsContainer.innerHTML = `<div class="error-msg">❌ ${escapeHtml(data.error)}</div>`;
+                    return;
+                }
+
+                resultsTitle.textContent = `Results`;
+                resultsMeta.innerHTML = `
+                    <span><span class="value">${data.row_count}</span> rows</span>
+                    <span><span class="value">${data.execution_time_ms}</span> ms</span>
+                `;
+
+                if (data.rows.length === 0) {
+                    resultsContainer.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Query returned no results</p></div>';
+                    return;
+                }
+
+                renderTable(data.columns, data.rows);
+            } catch (err) {
+                resultsTitle.textContent = 'Error';
+                resultsMeta.innerHTML = '';
+                resultsContainer.innerHTML = `<div class="error-msg">❌ Network error: ${escapeHtml(err.message)}</div>`;
+            } finally {
+                btnRun.disabled = false;
+                btnRun.innerHTML = '<span>▶</span> Run Query';
+            }
+        }
+
+        // ─── Render table ───
+        function renderTable(columns, rows) {
+            const statusFields = ['status', 'role'];
+
+            let html = '<table class="data-table"><thead><tr>';
+            columns.forEach(col => {
+                html += `<th>${escapeHtml(col)}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+
+            rows.forEach(row => {
+                html += '<tr>';
+                columns.forEach(col => {
+                    const val = row[col];
+                    if (val === null || val === undefined) {
+                        html += '<td class="null">NULL</td>';
+                    } else if (col === 'id') {
+                        html += `<td class="pk">${escapeHtml(String(val))}</td>`;
+                    } else if (statusFields.includes(col)) {
+                        html += `<td><span class="badge badge-${val}">${escapeHtml(String(val))}</span></td>`;
+                    } else {
+                        html += `<td title="${escapeHtml(String(val))}">${escapeHtml(String(val))}</td>`;
+                    }
+                });
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            resultsContainer.innerHTML = html;
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ─── Init ───
+        loadTables();
+    </script>
+</body>
+</html>
