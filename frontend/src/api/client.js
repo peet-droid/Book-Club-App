@@ -1,7 +1,11 @@
 import axios from 'axios';
 
 export const apiClient = axios.create({
-  baseURL: 'http://localhost:3000/api',
+  // Use VITE_BACKEND_URL from active .env file if available, and append '/api'.
+  // Defaults to relative '/api' if in production build natively, or localhost:3000 locally.
+  baseURL: import.meta.env.VITE_BACKEND_URL 
+    ? `${import.meta.env.VITE_BACKEND_URL.replace(/\/$/, '')}/api` 
+    : (import.meta.env.PROD ? '/api' : 'http://localhost:3000/api'),
   headers: {
     'Content-Type': 'application/json',
   },
