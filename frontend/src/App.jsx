@@ -1,11 +1,14 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import RootLayout from './routes/RootLayout';
 import Home from './routes/Home';
-import Members from './routes/Members';
-import Books from './routes/Books';
+import MembersList from './routes/MembersList';
+import MemberDetail from './routes/MemberDetail';
+import BooksList from './routes/BooksList';
+import BookDetail from './routes/BookDetail';
 import Lending from './routes/Lending';
 import Search from './routes/Search';
-import Groups from './routes/Groups';
+import GroupsList from './routes/GroupsList';
+import GroupDetail from './routes/GroupDetail';
 
 const router = createBrowserRouter([
   {
@@ -13,11 +16,14 @@ const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { index: true, element: <Home /> },
-      { path: 'members/*', element: <Members /> },
-      { path: 'books/*', element: <Books /> },
+      { path: 'members', element: <MembersList /> },
+      { path: 'members/:id', element: <MemberDetail /> },
+      { path: 'books', element: <BooksList /> },
+      { path: 'books/:id', element: <BookDetail /> },
       { path: 'lending/*', element: <Lending /> },
       { path: 'search', element: <Search /> },
-      { path: 'groups/*', element: <Groups /> }
+      { path: 'groups', element: <GroupsList /> },
+      { path: 'groups/:id', element: <GroupDetail /> }
     ]
   }
 ]);
