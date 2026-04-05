@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
-import { BookOpen, Users, Book, Search, Library, UsersRound, UserCircle2, Server, ServerOff } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { BookOpen, Users, Book, Search, Library, UsersRound, UserCircle2, Server, ServerOff, Menu, X } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useHealthCheck } from '../hooks/useHealth';
 import { useMembers } from '../hooks/useMembers';
@@ -7,6 +7,13 @@ import { useState, useRef, useEffect } from 'react';
 
 export default function Navbar() {
   const { isSuccess, isError } = useHealthCheck();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const location = useLocation();
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
   return (
     <nav className="bg-white border-b border-slate-200 sticky top-0 z-50">
@@ -26,13 +33,59 @@ export default function Navbar() {
             </div>
           </div>
           
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3 sm:gap-6">
             <ApiStatusIndicator isSuccess={isSuccess} isError={isError} />
             <UserMenu />
+            
+            {/* Mobile menu button */}
+            <div className="flex items-center sm:hidden">
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="inline-flex items-center justify-center p-2 rounded-md text-slate-400 hover:text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 transition-colors"
+                aria-expanded={isMobileMenuOpen}
+              >
+                <span className="sr-only">Open main menu</span>
+                {isMobileMenuOpen ? (
+                  <X className="block h-6 w-6" aria-hidden="true" />
+                ) : (
+                  <Menu className="block h-6 w-6" aria-hidden="true" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Mobile menu panel */}
+      {isMobileMenuOpen && (
+        <div className="sm:hidden border-t border-slate-200 bg-white shadow-lg absolute w-full left-0 z-40">
+          <div className="pt-2 pb-3 space-y-1">
+            <MobileNavLink to="/books" icon={<Book className="w-5 h-5 flex-shrink-0" />} label="Books" />
+            <MobileNavLink to="/members" icon={<Users className="w-5 h-5 flex-shrink-0" />} label="Members" />
+            <MobileNavLink to="/lending" icon={<Library className="w-5 h-5 flex-shrink-0" />} label="Lending" />
+            <MobileNavLink to="/search" icon={<Search className="w-5 h-5 flex-shrink-0" />} label="Search" />
+            <MobileNavLink to="/groups" icon={<UsersRound className="w-5 h-5 flex-shrink-0" />} label="Groups" />
+          </div>
+        </div>
+      )}
     </nav>
+  );
+}
+
+function MobileNavLink({ to, icon, label }) {
+  const isActive = location.pathname.startsWith(to);
+  return (
+    <Link
+      to={to}
+      className={`flex items-center gap-3 pl-4 pr-3 py-3 border-l-4 text-base font-medium transition-colors ${
+        isActive
+          ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
+          : 'border-transparent text-slate-600 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-800'
+      }`}
+    >
+      <span className={isActive ? 'text-indigo-600' : 'text-slate-400'}>{icon}</span>
+      {label}
+    </Link>
   );
 }
 

@@ -141,7 +141,7 @@ function WhoHasSearch() {
         <h2 className="text-2xl font-bold text-slate-900 mb-2">Track down a specific book</h2>
         <p className="text-sm text-slate-600 mb-6">Enter a precise book title to find out exactly who holds it right now across the entire community.</p>
         
-        <form onSubmit={handleSearch} className="flex gap-4">
+        <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-4">
           <input 
             type="text" 
             placeholder="Enter partial or full book title (min 3 chars)..."
@@ -152,7 +152,7 @@ function WhoHasSearch() {
           />
           <button 
             type="submit" 
-            className="px-6 py-3 bg-indigo-900 text-white font-medium rounded-xl hover:bg-slate-900 transition-colors flex items-center justify-center shadow-md whitespace-nowrap gap-2"
+            className="w-full sm:w-auto px-6 py-3 bg-indigo-900 text-white font-medium rounded-xl hover:bg-slate-900 transition-colors flex items-center justify-center shadow-md whitespace-nowrap gap-2"
           >
             <SearchIcon size={18} /> Deep Scan
           </button>
