@@ -14,7 +14,6 @@ yarn-error.log*
 .env.*
 
 # Build / dist
-dist/
 build/
 
 # OS files
