@@ -143,7 +143,7 @@ export default function BookDetail() {
             {!currentUser ? (
               <p className="text-sm text-slate-500 italic">Sign in via the top right menu to request or manage this book.</p>
             ) : isOwner ? (
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <button 
                   onClick={() => setIsEditing(true)}
                   className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors border border-slate-200 box-border"
@@ -166,7 +166,7 @@ export default function BookDetail() {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <button 
                   onClick={handleRequestBorrow}
                   disabled={book.status !== 'available' || createLendRequest.isPending}
